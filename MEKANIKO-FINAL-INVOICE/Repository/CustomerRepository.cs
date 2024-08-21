@@ -27,18 +27,16 @@ namespace MEKANIKO_FINAL_INVOICE.Repository
             await _data.SaveChangesAsync();
         }
 
-        public async Task DeleteCustomerByIdAsync(int id)
+        public async Task<bool> DeleteCustomerByIdAsync(int id)
         {
             var customer = await _data.Customers.FindAsync(id);
             if (customer != null)
             {
                 _data.Customers.Remove(customer);
                 await _data.SaveChangesAsync();
+                return true;  // Deletion was successful
             }
-            else
-            {
-                throw new ArgumentException("Invalid customer ID.");
-            }
+            return false;  // Customer not found
         }
 
         public async Task<List<CustomerSummaryDto>> GetCustomerListAsync()

@@ -36,21 +36,28 @@ namespace MEKANIKO_FINAL_INVOICE.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteCustomer([FromBody] int id)
+        public async Task<IActionResult> DeleteCustomer(int id)
         {
+            if (id <= 0)
+            {
+                return Json(new { success = false, message = "Invalid customer ID." });
+            }
+
             try
             {
-                if (id <= 0)
+                var result = await _customerRepository.DeleteCustomerByIdAsync(id);
+                if (result)
                 {
-                    return Json(new { success = false, message = "Invalid customer ID." });
+                    return Json(new { success = true, message = "Customer deleted successfully." });
                 }
-
-                await _customerRepository.DeleteCustomerByIdAsync(id);
-                return Json(new { success = true, message = "Customer deleted successfully!" });
+                else
+                {
+                    return Json(new { success = false, message = "Customer not found." });
+                }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Failed to delete customer. " + ex.Message });
+                return Json(new { success = false, message = $"Error occurred while deleting customer: {ex.Message}" });
             }
         }
 

@@ -6,6 +6,6 @@ namespace MEKANIKO_FINAL_INVOICE.Repository.IRepository
     {
         Task<List<CustomerSummaryDto>> GetCustomerListAsync();
         Task AddCustomerAsync(AddCustomerDto dto);
-        Task DeleteCustomerByIdAsync(int id);
+        Task<bool> DeleteCustomerByIdAsync(int id);
     }
 }

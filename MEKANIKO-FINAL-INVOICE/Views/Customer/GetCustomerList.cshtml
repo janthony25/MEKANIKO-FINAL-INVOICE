@@ -12,7 +12,6 @@
     </div>
 </div>
 
-
 <table class="table table-striped">
     <thead>
         <tr>
@@ -34,14 +33,13 @@
                 <td>
                     <div class="">
                         <a class=""><i class="bi bi-pencil-square"></i></a>
-                        <a class="ms-2"><i class="bi bi-trash3-fill"></i></a>
+                        <a class="ms-2 delete-customer-btn" data-id="@customer.CustomerId" data-name="@customer.CustomerName" data-email="@customer.CustomerEmail" data-number="@customer.CustomerNumber"><i class="bi bi-trash3-fill"></i></a>
                     </div>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
 
 <!-- Modal for Adding New Customer -->
 <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
@@ -107,20 +105,17 @@
     </div>
 </div>
 
-
-
 @section Scripts {
     <script>
-        // Adding New Customer
-        $(document).ready(function () {
+        $(document).ready(function () 
+        {
             $('#saveCustomerBtn').click(function () {
-                // Client-side validation
                 var customerName = $('#CustomerName').val();
                 if (!customerName || customerName.trim() === '') {
                     $('#CustomerNameError').text('Customer Name is required.');
-                    return; // Prevent the AJAX call if validation fails
+                    return;
                 } else {
-                    $('#CustomerNameError').text(''); // Clear any previous error messages
+                    $('#CustomerNameError').text('');
                 }
 
                 var customerData = {
@@ -130,7 +125,7 @@
                 };
 
                 $.ajax({
-                    url: '@Url.Action("AddNewCustomer", "Customer")', // Ensure this points to the correct action
+                    url: '@Url.Action("AddNewCustomer", "Customer")',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(customerData),
@@ -141,9 +136,8 @@
                         if (response.success) {
                             alert(response.message);
                             $('#addCustomerModal').modal('hide');
-                            location.reload(); // Reload the page to update the customer list
+                            location.reload();
                         } else {
-                            // Display validation errors
                             handleValidationErrors(response.errors);
                         }
                     },
@@ -155,12 +149,10 @@
             });
 
             function handleValidationErrors(errors) {
-                // Clear previous errors
                 $('#CustomerNameError').text('');
                 $('#CustomerNumberError').text('');
                 $('#CustomerEmailError').text('');
 
-                // Display new errors
                 if (errors) {
                     if (errors['CustomerName']) {
                         $('#CustomerNameError').text(errors['CustomerName']);
@@ -173,34 +165,31 @@
                     }
                 }
             }
-        });
 
+            $('.delete-customer-btn').click(function () {
+                var customerId = $(this).data('id');
+                console.log("Customer ID for deletion: " + customerId); // Check this value
+                var customerName = $(this).data('name');
+                var customerEmail = $(this).data('email');
+                var customerNumber = $(this).data('number');
 
-        $(document).ready(function () {
-            // Handle click on delete button to show the delete confirmation modal
-            $('.bi-trash3-fill').click(function () {
-                var row = $(this).closest('tr');
-                var customerId = row.find('td:first').text().trim(); // Ensure the ID is trimmed and correct
-
-                // Populate the modal with customer details
                 $('#deleteCustomerId').text(customerId);
-                $('#hiddenDeleteCustomerId').val(customerId);
+                $('#deleteCustomerName').text(customerName);
+                $('#deleteCustomerEmail').text(customerEmail);
+                $('#deleteCustomerNumber').text(customerNumber);
+                $('#hiddenDeleteCustomerId').val(customerId);  // This is crucial
 
-                // Show the delete confirmation modal
                 $('#deleteCustomerModal').modal('show');
             });
 
-            // Handle the actual deletion process when "Delete" button is clicked
-            $('#confirmDeleteCustomerBtn').click(function () {
-                var customerId = $('#hiddenDeleteCustomerId').val().trim(); // Ensure the ID is trimmed
 
-                console.log("Customer ID to delete:", customerId); // Log the customer ID
+            $('#confirmDeleteCustomerBtn').click(function () {
+                var customerId = $('#hiddenDeleteCustomerId').val().trim();
 
                 $.ajax({
                     url: '@Url.Action("DeleteCustomer", "Customer")',
                     type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ id: parseInt(customerId) }),  // Ensure the ID is sent as an integer
+                    data: { id: customerId },  // Sending as form data
                     headers: {
                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                     },
@@ -208,7 +197,7 @@
                         if (response.success) {
                             alert(response.message);
                             $('#deleteCustomerModal').modal('hide');
-                            location.reload(); // Reload the page to update the customer list
+                            location.reload();
                         } else {
                             alert('Error occurred while deleting customer: ' + response.message);
                             console.error('Server-side error:', response.message);
@@ -223,8 +212,5 @@
                 });
             });
         });
-
-
-    
     </script>
 }
