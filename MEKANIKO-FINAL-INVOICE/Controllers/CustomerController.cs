@@ -1,4 +1,5 @@
 ﻿using MEKANIKO_FINAL_INVOICE.Models.Dto;
+using MEKANIKO_FINAL_INVOICE.Repository;
 using MEKANIKO_FINAL_INVOICE.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel;
@@ -8,9 +9,11 @@ namespace MEKANIKO_FINAL_INVOICE.Controllers
     public class CustomerController : Controller
     {
         private readonly ICustomerRepository _customerRepository;
-        public CustomerController(ICustomerRepository customerRepository)
+        private readonly ICarRepository _carRepository;
+        public CustomerController(ICustomerRepository customerRepository, ICarRepository carRepository)
         {
             _customerRepository = customerRepository;
+            _carRepository = carRepository;
         }
 
         // GET - Customer List
@@ -34,6 +37,7 @@ namespace MEKANIKO_FINAL_INVOICE.Controllers
             return Json(new { success = false, message = "Failed to add customer." });
         }
 
+        // POST - Delete Customer
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCustomer(int id)
@@ -59,6 +63,15 @@ namespace MEKANIKO_FINAL_INVOICE.Controllers
             {
                 return Json(new { success = false, message = $"Error occurred while deleting customer: {ex.Message}" });
             }
+        }
+
+        // GET - Customer Cars
+        public async Task<IActionResult> GetCustomerCars(int id)
+        {
+            var customerCar = await _customerRepository.GetCustomerCarsByIdAsync(id);
+            var makes = await _carRepository.GetAllMakesAsync();
+            ViewBag.Makes = makes;
+            return View(customerCar);
         }
 
 

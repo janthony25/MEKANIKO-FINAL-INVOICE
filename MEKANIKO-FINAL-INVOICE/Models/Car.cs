@@ -8,7 +8,7 @@ namespace MEKANIKO_FINAL_INVOICE.Models
         public int CarId { get; set; }
         public string CarRego { get; set; }
         public string CarModel { get; set; }
-        public string CarYear { get; set; }
+        public int CarYear { get; set; }
         public bool? CarPaymentStatus { get; set; }
 
         // FK to Customer

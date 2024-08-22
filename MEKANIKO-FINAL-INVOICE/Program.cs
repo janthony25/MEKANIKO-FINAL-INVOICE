@@ -15,6 +15,7 @@ builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer(
 
 // Repositories
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICarRepository, CarRepository>();
 
 // Razor Runtime Compilation
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
