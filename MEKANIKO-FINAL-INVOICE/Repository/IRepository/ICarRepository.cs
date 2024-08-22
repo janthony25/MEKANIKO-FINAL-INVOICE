@@ -7,5 +7,6 @@ namespace MEKANIKO_FINAL_INVOICE.Repository.IRepository
         Task<bool> AddCarToCustomerAsync(AddCarDto dto);
         Task<List<MakeDto>> GetAllMakesAsync();
         Task<bool> DeleteCarByIdAsync(int id);
+        Task<List<CarInvoiceSummaryDto>> GetCarInvoiceSummaryByCarIdAsync(int id);
     }
 }

@@ -73,5 +73,12 @@ namespace MEKANIKO_FINAL_INVOICE.Controllers
             }
         }
 
+        // GET: Car Invoice
+        public async Task<IActionResult> GetCarInvoice(int id)
+        {
+            var carInvoice = await _carRepository.GetCarInvoiceSummaryByCarIdAsync(id);
+            return View(carInvoice);
+        }
+
     }
 }
