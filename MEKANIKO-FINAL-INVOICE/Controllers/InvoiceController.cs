@@ -59,5 +59,13 @@ namespace MEKANIKO_FINAL_INVOICE.Controllers
                 return Json(new { success = false, message = "An error occurred while fetching invoice details." });
             }
         }
+
+
+        // GET: Invoice List
+        public async Task<IActionResult> GetInvoiceSummary()
+        {
+            var invoiceList = await _invoiceRepository.GetInvoiceListAsync();
+            return View(invoiceList);
+        }
     }
 }

@@ -206,7 +206,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addInvoiceModalLabel">Add New Invoice</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearInvoiceForm()"></button>
             </div>
             <div class="modal-body">
                 <form id="invoiceForm">
@@ -300,7 +300,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearInvoiceForm()">Close</button>
                 <button type="button" class="btn btn-primary" id="saveInvoiceBtn">Save Invoice</button>
             </div>
         </div>
@@ -311,22 +311,22 @@
 
 @section Scripts {
     <script>
+        // Global variable to keep track of the number of invoice items
+        let itemIndex = 0;
+
         $(document).ready(function () {
-            // Global variable to keep track of the number of invoice items
-            let itemIndex = 0;
+            console.log('Document ready');
 
-            // Initialize the Bootstrap modal for adding a new invoice
-            var myModal = new bootstrap.Modal(document.getElementById('addInvoiceModal'), {
-                keyboard: false
-            });
-
-            // Event listener for the button that opens the modal to add a new invoice
+            // Event listener for the "Add Invoice" button
             $('.btn-warning').click(function () {
-                myModal.show();
+                console.log('Add Invoice button clicked');
+                populateCustomerDetails();
             });
 
-            // Event listener for the "Add Item" button in the new invoice form
-            $('#addItemButton').click(function () {
+            // Event listener for the "Add Item" button
+            $(document).on('click', '#addItemButton', function (e) {
+                e.preventDefault();
+                console.log('Add Item button clicked');
                 addInvoiceItem();
             });
 
@@ -338,12 +338,10 @@
             });
 
             // Add event listeners for real-time calculation
-            // These will recalculate totals whenever an input value changes
             $('#invoiceForm').on('input', '.calc-input', calculateTotals);
             $('#LaborPrice, #Discount, #ShippingFee, #AmountPaid').on('input', calculateTotals);
 
             // Event listener for viewing invoice details
-            // This is now correctly placed within the document ready function
             $('.view-invoice').click(function (e) {
                 e.preventDefault();
                 var invoiceId = $(this).data('invoice-id');
@@ -351,33 +349,52 @@
             });
         });
 
+        // Function to populate customer details in the "Add Invoice" modal
+        function populateCustomerDetails() {
+            console.log('Populating customer details');
+
+            // Get customer details from the main page
+            var customerName = $('input[name="[0].CustomerName"]').val();
+            var carRego = $('input[name="[0].CarRego"]').val();
+            var carModel = $('input[name="[0].CarModel"]').val();
+            var carYear = $('input[name="[0].CarYear"]').val();
+
+            // Set the values in the modal fields
+            $('#CustomerName').val(customerName);
+            $('#CarRego').val(carRego);
+            $('#CarModel').val(carModel);
+            $('#CarYear').val(carYear);
+
+            console.log('Customer details populated:',
+                { name: customerName, rego: carRego, model: carModel, year: carYear });
+        }
+
         // Function to add a new invoice item to the form
         function addInvoiceItem() {
-            // HTML template for a new invoice item
+            console.log('Adding new invoice item');
             const itemHtml = `
-                <div class="invoice-item d-flex mb-3">
-                    <div class="form-group">
-                        <label for="InvoiceItems[${itemIndex}].ItemName">Item Name</label>
-                        <input name="InvoiceItems[${itemIndex}].ItemName" class="form-control input" required />
-                    </div>
-                    <div class="form-group ms-4">
-                        <label for="InvoiceItems[${itemIndex}].Quantity">Quantity</label>
-                        <input type="number" name="InvoiceItems[${itemIndex}].Quantity" class="form-control quantity-input calc-input" required />
-                    </div>
-                    <div class="form-group ms-4">
-                        <label for="InvoiceItems[${itemIndex}].ItemPrice">Item Price</label>
-                        <input type="number" name="InvoiceItems[${itemIndex}].ItemPrice" class="form-control price-input calc-input" step="0.01" required />
-                    </div>
-                    <div class="form-group ms-4">
-                        <label for="InvoiceItems[${itemIndex}].ItemTotal">Item Total</label>
-                        <input type="number" name="InvoiceItems[${itemIndex}].ItemTotal" class="form-control total-input" readonly />
-                    </div>
-                </div>
-            `;
-            // Append the new item to the invoice items container
+                        <div class="invoice-item d-flex mb-3">
+                            <div class="form-group">
+                                <label for="InvoiceItems[${itemIndex}].ItemName">Item Name</label>
+                                <input name="InvoiceItems[${itemIndex}].ItemName" class="form-control input" required />
+                            </div>
+                            <div class="form-group ms-4">
+                                <label for="InvoiceItems[${itemIndex}].Quantity">Quantity</label>
+                                <input type="number" name="InvoiceItems[${itemIndex}].Quantity" class="form-control quantity-input calc-input" required />
+                            </div>
+                            <div class="form-group ms-4">
+                                <label for="InvoiceItems[${itemIndex}].ItemPrice">Item Price</label>
+                                <input type="number" name="InvoiceItems[${itemIndex}].ItemPrice" class="form-control price-input calc-input" step="0.01" required />
+                            </div>
+                            <div class="form-group ms-4">
+                                <label for="InvoiceItems[${itemIndex}].ItemTotal">Item Total</label>
+                                <input type="number" name="InvoiceItems[${itemIndex}].ItemTotal" class="form-control total-input" readonly />
+                            </div>
+                        </div>
+                    `;
             $('#invoiceItems').append(itemHtml);
-            // Increment the item index for the next item
             itemIndex++;
+            calculateTotals();
         }
 
         // Function to calculate totals for the entire invoice
@@ -401,32 +418,22 @@
 
             // Calculate total amount after discount
             const discount = parseFloat($('#Discount').val()) || 0;
-            const totalAmount = Math.max(subTotal - discount, 0); // Ensure total is not negative
+            const totalAmount = Math.max(subTotal - discount, 0);
             $('#TotalAmount').val(totalAmount.toFixed(2));
 
             // Determine if the invoice is paid
             const amountPaid = parseFloat($('#AmountPaid').val()) || 0;
             const isPaid = amountPaid >= totalAmount;
 
-            // Update the display for the user
             $('#PaymentStatus').val(isPaid ? "Paid" : "Not Paid");
-
-            // Set the actual boolean value for form submission
             $('#IsPaid').val(isPaid);
         }
 
         // Function to validate the form before submission
         function validateForm() {
             let isValid = true;
-            $('.error-message').remove(); // Clear previous error messages
+            $('.error-message').remove();
 
-            // Check if at least one item is added
-            if ($('.invoice-item').length === 0) {
-                alert("Please add at least one item to the invoice.");
-                isValid = false;
-            }
-
-            // Validate required fields
             $('#invoiceForm [required]').each(function () {
                 if ($(this).val().trim() === '') {
                     isValid = false;
@@ -434,7 +441,6 @@
                 }
             });
 
-            // Validate date fields
             if (!isValidDate($('#DateAdded').val())) {
                 isValid = false;
                 $('#DateAdded').after('<span class="error-message text-danger">Please enter a valid date.</span>');
@@ -450,16 +456,15 @@
         // Helper function to validate date format (YYYY-MM-DD)
         function isValidDate(dateString) {
             var regEx = /^\d{4}-\d{2}-\d{2}$/;
-            if (!dateString.match(regEx)) return false;  // Invalid format
+            if (!dateString.match(regEx)) return false;
             var d = new Date(dateString);
             var dNum = d.getTime();
-            if (!dNum && dNum !== 0) return false; // NaN value, Invalid date
+            if (!dNum && dNum !== 0) return false;
             return d.toISOString().slice(0, 10) === dateString;
         }
 
         // Function to submit the invoice data to the server
         function submitInvoice() {
-            // Prepare the invoice data object
             const invoiceData = {
                 CarId: parseInt($('#CarId').val()),
                 DateAdded: $('#DateAdded').val(),
@@ -477,7 +482,6 @@
                 InvoiceItems: []
             };
 
-            // Collect data for each invoice item
             $('.invoice-item').each(function () {
                 invoiceData.InvoiceItems.push({
                     ItemName: $(this).find('input[name$=".ItemName"]').val(),
@@ -489,7 +493,6 @@
 
             console.log('Submitting invoice data:', invoiceData);
 
-            // Send the invoice data to the server
             $.ajax({
                 url: '@Url.Action("AddInvoiceToCar", "Invoice")',
                 type: 'POST',
@@ -545,11 +548,8 @@
 
         // Function to populate the view modal with invoice details
         function populateViewModal(invoice) {
-            // Populate customer and car details
             $('#ViewCustomerName').val(invoice.customerName);
             $('#ViewCarRego').val(invoice.carRego);
-
-            // Populate invoice details
             $('#ViewDateAdded').val(invoice.dateAdded);
             $('#ViewDueDate').val(invoice.dueDate);
             $('#ViewIssueName').val(invoice.issueName);
@@ -563,31 +563,44 @@
             $('#ViewAmountPaid').val(invoice.amountPaid);
             $('#ViewPaymentStatus').val(invoice.isPaid ? 'Paid' : 'Not Paid');
 
-            // Clear and populate invoice items
             $('#viewInvoiceItems').empty();
             invoice.invoiceItems.forEach(function (item) {
                 var itemHtml = `
-                    <div class="invoice-item d-flex mb-3">
-                        <div class="form-group">
-                            <label>Item Name</label>
-                            <input type="text" class="form-control" value="${item.itemName}" readonly />
-                        </div>
-                        <div class="form-group ms-4">
-                            <label>Quantity</label>
-                            <input type="text" class="form-control" value="${item.quantity}" readonly />
-                        </div>
-                        <div class="form-group ms-4">
-                            <label>Item Price</label>
-                            <input type="text" class="form-control" value="${item.itemPrice}" readonly />
-                        </div>
-                        <div class="form-group ms-4">
-                            <label>Item Total</label>
-                            <input type="text" class="form-control" value="${item.itemTotal}" readonly />
-                        </div>
-                    </div>
-                `;
+                            <div class="invoice-item d-flex mb-3">
+                                <div class="form-group">
+                                    <label>Item Name</label>
+                                    <input type="text" class="form-control" value="${item.itemName}" readonly />
+                                </div>
+                                <div class="form-group ms-4">
+                                    <label>Quantity</label>
+                                    <input type="text" class="form-control" value="${item.quantity}" readonly />
+                                </div>
+                                <div class="form-group ms-4">
+                                    <label>Item Price</label>
+                                    <input type="text" class="form-control" value="${item.itemPrice}" readonly />
+                                </div>
+                                <div class="form-group ms-4">
+                                    <label>Item Total</label>
+                                    <input type="text" class="form-control" value="${item.itemTotal}" readonly />
+                                </div>
+                            </div>
+                        `;
                 $('#viewInvoiceItems').append(itemHtml);
             });
+        }
+
+        // Function to clear the invoice form
+        function clearInvoiceForm() {
+            console.log('Clearing invoice form');
+            $('#invoiceForm')[0].reset();
+            $('#invoiceItems').empty();
+            itemIndex = 0;
+            $('#SubTotal, #TotalAmount, #PaymentStatus').val('');
+            $('.error-message').remove();
+            $('#DateAdded, #DueDate, #IssueName, #PaymentTerm, #Notes, #LaborPrice, #Discount, #ShippingFee, #AmountPaid').val('');
+            $('.invoice-item').remove();
+            console.log('Invoice form cleared');
+            populateCustomerDetails(); // Re-populate customer details after clearing
         }
     </script>
 }

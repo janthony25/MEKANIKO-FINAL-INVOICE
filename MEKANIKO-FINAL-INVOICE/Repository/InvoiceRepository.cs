@@ -105,5 +105,24 @@ namespace MEKANIKO_FINAL_INVOICE.Repository
                 }).ToList()
             };
         }
+
+        public async Task<List<InvoiceListDto>> GetInvoiceListAsync()
+        {
+            return await _data.Invoices
+                .Include(i => i.Car)
+                    .ThenInclude(car => car.Customer)
+                .Select(i => new InvoiceListDto
+                {
+                    InvoiceId = i.InvoiceId,
+                    DateAdded = i.DateAdded,
+                    DueDate = i.DueDate,
+                    TotalAmount = i.TotalAmount,
+                    IsPaid = i.IsPaid,
+                    CustomerId = i.Car.Customer.CustomerId,
+                    CustomerName = i.Car.Customer.CustomerName,
+                    CarId = i.Car.CarId,
+                    CarRego = i.Car.CarRego
+                }).ToListAsync();
+        }
     }
 }
